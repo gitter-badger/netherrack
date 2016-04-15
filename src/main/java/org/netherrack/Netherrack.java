@@ -17,43 +17,125 @@ import org.spacehq.packetlib.event.session.PacketReceivedEvent;
 import org.spacehq.packetlib.event.session.SessionAdapter;
 import org.spacehq.packetlib.tcp.TcpSessionFactory;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Properties;
 import java.net.Proxy;
 
 public class Netherrack {
 	public static void main(String[] args) {
-		Server server = new Server("localhost", 25565, MinecraftProtocol.class, new TcpSessionFactory(Proxy.NO_PROXY));
+		Properties prop = new Properties();
+		InputStream input = null;
+		OutputStream output = null;
 		
-		server.setGlobalFlag(MinecraftConstants.AUTH_PROXY_KEY, Proxy.NO_PROXY);
-		server.setGlobalFlag(MinecraftConstants.VERIFY_USERS_KEY, true);
-		server.setGlobalFlag(MinecraftConstants.SERVER_COMPRESSION_THRESHOLD, 256);
-		
-		new RegisterListeners(server);
+		try {
+			input = new FileInputStream("server.properties");
+			prop.load(input);
+			
+			Server server = new Server("localhost", Integer.parseInt(prop.getProperty("server-port")), MinecraftProtocol.class, new TcpSessionFactory(Proxy.NO_PROXY));
+			server.setGlobalFlag(MinecraftConstants.SERVER_COMPRESSION_THRESHOLD, Integer.parseInt(prop.getProperty("network-compression-threshold")));
+			
+			server.setGlobalFlag(MinecraftConstants.AUTH_PROXY_KEY, Proxy.NO_PROXY);
+			server.setGlobalFlag(MinecraftConstants.VERIFY_USERS_KEY, Boolean.parseBoolean(prop.getProperty("online-mode")));
+			
+			new RegisterListeners(server);
+			server.bind();
 
-		server.addListener(new ServerAdapter() {
-			@Override
-			public void sessionAdded(SessionAddedEvent event) {
-				event.getSession().addListener(new SessionAdapter() {
-					@Override
-					public void packetReceived(PacketReceivedEvent event) {
-						if (event.getPacket() instanceof ClientChatPacket) {
-							ClientChatPacket packet = event.getPacket();
-							GameProfile profile = event.getSession().getFlag(MinecraftConstants.PROFILE_KEY);
-							System.out.println(profile.getName() + ": " + packet.getMessage());
-							Message msg = new TextMessage("Hello, ")
-									.setStyle(new MessageStyle().setColor(ChatColor.GREEN));
-							Message name = new TextMessage(profile.getName()).setStyle(
-									new MessageStyle().setColor(ChatColor.AQUA).addFormat(ChatFormat.UNDERLINED));
-							Message end = new TextMessage("!");
-							msg.addExtra(name);
-							msg.addExtra(end);
-							event.getSession().send(new ServerChatPacket(msg));
+			server.addListener(new ServerAdapter() {
+				@Override
+				public void sessionAdded(SessionAddedEvent event) {
+					event.getSession().addListener(new SessionAdapter() {
+						@Override
+						public void packetReceived(PacketReceivedEvent event) {
+							if (event.getPacket() instanceof ClientChatPacket) {
+								ClientChatPacket packet = event.getPacket();
+								GameProfile profile = event.getSession().getFlag(MinecraftConstants.PROFILE_KEY);
+								System.out.println(profile.getName() + ": " + packet.getMessage());
+								Message msg = new TextMessage("Hello, ")
+										.setStyle(new MessageStyle().setColor(ChatColor.GREEN));
+								Message name = new TextMessage(profile.getName()).setStyle(
+										new MessageStyle().setColor(ChatColor.AQUA).addFormat(ChatFormat.UNDERLINED));
+								Message end = new TextMessage("!");
+								msg.addExtra(name);
+								msg.addExtra(end);
+								event.getSession().send(new ServerChatPacket(msg));
+							}
 						}
-					}
-				});
-			}
-		});
+					});
+				}
+			});
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		} finally {
+			if (input != null) {
+				try {
+					input.close();
+				} catch (IOException e) {
+					//e.printStackTrace();
+				}
+			} else {
+				try {
+					output = new FileOutputStream("server.properties");
+					
+					prop.setProperty("server-port", "25565");
+					prop.setProperty("network-compression-threshold", "256");
+					prop.setProperty("gamemode", "0");
+					prop.setProperty("online-mode", "true");
+					prop.setProperty("max-players", "20");
+					prop.setProperty("motd", "A Minecraft Server");
+					
+					prop.store(output, null);
+					
+					prop = new Properties();
+					
+					input = new FileInputStream("server.properties");
+					prop.load(input);
+					
+					input = new FileInputStream("server.properties");
+					prop.load(input);
+					
+					Server server = new Server("localhost", Integer.parseInt(prop.getProperty("server-port")), MinecraftProtocol.class, new TcpSessionFactory(Proxy.NO_PROXY));
+					server.setGlobalFlag(MinecraftConstants.SERVER_COMPRESSION_THRESHOLD, Integer.parseInt(prop.getProperty("network-compression-threshold")));
+					
+					server.setGlobalFlag(MinecraftConstants.AUTH_PROXY_KEY, Proxy.NO_PROXY);
+					server.setGlobalFlag(MinecraftConstants.VERIFY_USERS_KEY, Boolean.parseBoolean(prop.getProperty("online-mode")));
+					
+					new RegisterListeners(server);
+					server.bind();
 
-		server.bind();
+					server.addListener(new ServerAdapter() {
+						@Override
+						public void sessionAdded(SessionAddedEvent event) {
+							event.getSession().addListener(new SessionAdapter() {
+								@Override
+								public void packetReceived(PacketReceivedEvent event) {
+									if (event.getPacket() instanceof ClientChatPacket) {
+										ClientChatPacket packet = event.getPacket();
+										GameProfile profile = event.getSession().getFlag(MinecraftConstants.PROFILE_KEY);
+										System.out.println(profile.getName() + ": " + packet.getMessage());
+										Message msg = new TextMessage("Hello, ")
+												.setStyle(new MessageStyle().setColor(ChatColor.GREEN));
+										Message name = new TextMessage(profile.getName()).setStyle(
+												new MessageStyle().setColor(ChatColor.AQUA).addFormat(ChatFormat.UNDERLINED));
+										Message end = new TextMessage("!");
+										msg.addExtra(name);
+										msg.addExtra(end);
+										event.getSession().send(new ServerChatPacket(msg));
+									}
+								}
+							});
+						}
+					});
+				} catch (Exception e) {
+					//e.printStackTrace();
+				}
+			}
+		}
+		
 		while (true) {
 			// keep it running
 		}

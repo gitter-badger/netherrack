@@ -30,3 +30,4 @@ local.properties
 .springBeans
 .recommenders/
 target/
+server.properties
