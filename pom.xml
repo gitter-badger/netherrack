@@ -41,6 +41,23 @@
       	<version>3.8.1</version>
       	<scope>test</scope>
       </dependency>
+      <dependency>
+         <groupId>org.spacehq</groupId>
+         <artifactId>opennbt</artifactId>
+         <version>1.0</version>
+         <scope>compile</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.spacehq</groupId>
+         <artifactId>packetlib</artifactId>
+         <version>1.0</version>
+         <scope>compile</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.spacehq</groupId>
+         <artifactId>mcauthlib</artifactId>
+         <version>1.0</version>
+      </dependency>
   </dependencies>
 
   <licenses>
@@ -54,14 +71,49 @@
   <build>
     <finalName>netherrack-${project.version}</finalName>
     <directory>${project.basedir}/target</directory>
-    <resources>
+    <!--<resources>
         <resource>
             <directory>${project.basedir}/src/main/resources</directory>
         </resource>
     </resources>
+    -->
     <defaultGoal>package</defaultGoal>
 
     <plugins>
+    	<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    
+	   <!--<plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-dependency-plugin</artifactId>
+	    <executions>
+	        <execution>
+	            <id>copy-dependencies</id>
+	            <phase>prepare-package</phase>
+	            <goals>
+	                <goal>copy-dependencies</goal>
+	            </goals>
+	            <configuration>
+	                <outputDirectory>${project.build.directory}/classes/lib</outputDirectory>
+	                <overWriteReleases>false</overWriteReleases>
+	                <overWriteSnapshots>false</overWriteSnapshots>
+	                <overWriteIfNewer>true</overWriteIfNewer>
+	            </configuration>
+	        </execution>
+	    </executions>
+	  </plugin>
+	  -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -69,7 +121,7 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>org.netherrack.Server</mainClass>
+              <mainClass>org.netherrack.Netherrack</mainClass>
             </manifest>
           </archive>
         </configuration>
