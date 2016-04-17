@@ -1,8 +1,13 @@
 machine:
    java:
-       version: oraclejdk8
+      version: oraclejdk8
+
 test:
-    override:
-        - mvn package
-    post:
-        - cp -r target/netherrack*.jar $CIRCLE_ARTIFACTS/
+   override:
+      - mvn package
+   post:
+      - cp -r target/netherrack*.jar $CIRCLE_ARTIFACTS/
+
+notify:
+   webhooks:
+      - url: https://webhooks.gitter.im/e/e2ad66d413940a83739c
